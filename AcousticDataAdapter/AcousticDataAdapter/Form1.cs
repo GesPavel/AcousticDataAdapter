@@ -12,8 +12,10 @@ namespace AcousticDataAdapter
 {
     public partial class Form1 : Form
     {
+        MainLogic mainLogic;
         public Form1()
         {
+            mainLogic = new MainLogic();
             InitializeComponent();
         }
     }
