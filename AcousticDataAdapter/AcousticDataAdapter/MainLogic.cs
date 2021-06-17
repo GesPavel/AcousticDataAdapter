@@ -10,11 +10,16 @@ namespace AcousticDataAdapter
     {
         public MainLogic()
         {
-           short[] numbers = convertWAVtoShortArray("../data/CantinaBand3.wav");
-            writeNumbersToFile(numbers);
+           
         }
 
-        short[] convertWAVtoShortArray(string filepath)
+        public void OpenFileAndSaveConversionResult(string pathToSource, string pathToDest)
+        {
+            short[] numbers = ConvertWAVtoShortArray(pathToSource);
+            WriteNumbersToFile(numbers, pathToDest);
+        }
+
+        short[] ConvertWAVtoShortArray(string filepath)
         {
 
             try {
@@ -35,9 +40,9 @@ namespace AcousticDataAdapter
                       
         }
 
-        void writeNumbersToFile(short[] numbers)
+        void WriteNumbersToFile(short[] numbers, string filepath)
         {
-            StreamWriter ostream = new StreamWriter("../data/result.txt");
+            StreamWriter ostream = new StreamWriter(filepath);
             for (int i = 0; i < numbers.Length; i++)
             {
                 ostream.WriteLine(numbers[i]);
