@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.FileChooserButton = new System.Windows.Forms.Button();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.SuspendLayout();
             // 
             // textBox1
@@ -42,17 +42,9 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "Hello World";
             // 
-            // openFileDialog
+            // folderBrowserDialog
             // 
-            this.openFileDialog.FileName = "Select a text file";
-            this.openFileDialog.Filter = "WAV files (*.wav)|*.wav";
-            this.openFileDialog.Title = "Open text file";
-            //
-            //saveFileDialog
-            //
-            saveFileDialog.Filter = "Text File|*.txt";
-            saveFileDialog.Title = "Save an Image File";
-
+            this.folderBrowserDialog.Description = "Select a folder with WAV files";
             // 
             // FileChooserButton
             // 
@@ -63,6 +55,11 @@
             this.FileChooserButton.Text = "Choose File";
             this.FileChooserButton.UseVisualStyleBackColor = true;
             this.FileChooserButton.Click += new System.EventHandler(this.FileChooserButton_Click);
+            // 
+            // saveFileDialog
+            // 
+            this.saveFileDialog.Filter = "Text File|*.txt";
+            this.saveFileDialog.Title = "Save an Image File";
             // 
             // MainForm
             // 
@@ -82,9 +79,9 @@
         #endregion
 
         private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.Button FileChooserButton;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
     }
 }
 

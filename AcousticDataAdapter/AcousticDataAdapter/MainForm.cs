@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,15 +28,15 @@ namespace AcousticDataAdapter
 
         private void FileChooserButton_Click(object sender, EventArgs e)
         {
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    var filePath = openFileDialog.FileName;
+                    var filePath = folderBrowserDialog.SelectedPath;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK && saveFileDialog.FileName != "")
                     {
                         var filePath2 = saveFileDialog.FileName;
-                        mainLogic.OpenFileAndSaveConversionResult(filePath, filePath2);
+                        mainLogic.OpenFolderAndSaveConversionResult(filePath, filePath2);
                     }
                 }
                 catch (SecurityException ex)
