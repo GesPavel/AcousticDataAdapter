@@ -58,6 +58,8 @@
             // channel0CheckBox
             // 
             this.channel0CheckBox.AutoSize = true;
+            this.channel0CheckBox.Checked = true;
+            this.channel0CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.channel0CheckBox.Location = new System.Drawing.Point(12, 60);
             this.channel0CheckBox.Name = "channel0CheckBox";
             this.channel0CheckBox.Size = new System.Drawing.Size(106, 17);
@@ -69,6 +71,8 @@
             // channel1CheckBox
             // 
             this.channel1CheckBox.AutoSize = true;
+            this.channel1CheckBox.Checked = true;
+            this.channel1CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.channel1CheckBox.Location = new System.Drawing.Point(12, 95);
             this.channel1CheckBox.Name = "channel1CheckBox";
             this.channel1CheckBox.Size = new System.Drawing.Size(106, 17);
@@ -80,6 +84,8 @@
             // channel2CheckBox
             // 
             this.channel2CheckBox.AutoSize = true;
+            this.channel2CheckBox.Checked = true;
+            this.channel2CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.channel2CheckBox.Location = new System.Drawing.Point(12, 129);
             this.channel2CheckBox.Name = "channel2CheckBox";
             this.channel2CheckBox.Size = new System.Drawing.Size(106, 17);

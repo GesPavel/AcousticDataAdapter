@@ -26,16 +26,27 @@ namespace AcousticDataAdapter
             public string channel0File;
             public string channel1File;
             public string channel2File;
+            public string propertiesFile;
+        }
+
+        struct Properties
+        {
+            public string fileName;
+            public DateTime begin;
+            public DateTime end;
+            public int frequency;
+            public int samples;
         }
 
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
             ChannelFiles files = GetFilesFromFolder(pathToSource);
+            Properties prop = ExtractFileProperties(files.propertiesFile);
             short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                     ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                     ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                 };
-            WriteNumbersToFile(numbers, pathToDest);
+            WriteNumbersToFile(numbers, prop, pathToDest);
         }
 
 
@@ -59,8 +70,47 @@ namespace AcousticDataAdapter
                     channels.channel1File = file;
                 else if (file.EndsWith("_2.wav"))
                     channels.channel2File = file;
+                else if (file.EndsWith(".prop"))
+                    channels.propertiesFile = file;
             }
             return channels;
+        }
+
+        Properties ExtractFileProperties(string path)
+        {
+            Properties prop = new Properties();
+            StreamReader sr = new StreamReader(path);
+
+            string name = sr.ReadLine();
+            prop.fileName = name.Substring(name.IndexOf('=') + 1);
+
+            string beginDate = sr.ReadLine();
+            prop.begin = ParseDate(beginDate.Substring(beginDate.IndexOf('=')+1));
+
+            string endDate = sr.ReadLine();
+            prop.end = ParseDate(endDate.Substring(endDate.IndexOf('=')+1));
+
+            string frequency = sr.ReadLine();
+            prop.frequency = Int32.Parse(frequency.Substring(frequency.IndexOf('=')+1));
+
+            sr.ReadLine();
+            string samples = sr.ReadLine();
+            prop.samples = Int32.Parse(samples.Substring(samples.IndexOf('=')+1));
+
+            sr.Close();
+
+            return prop;
+        }
+
+        DateTime ParseDate(string str)
+        {
+            int year = Int32.Parse(str.Substring(0, 4));  
+            int month = Int32.Parse(str.Substring(5, 2));
+            int day = Int32.Parse(str.Substring(8, 2));
+            int hour = Int32.Parse(str.Substring(11, 2));
+            int minute = Int32.Parse(str.Substring(14, 2));
+            int second = Int32.Parse(str.Substring(17, 2));
+            return new DateTime(year, month, day, hour, minute, second);
         }
         short[] ConvertWAVtoShortArray(string filepath)
         {
@@ -75,6 +125,7 @@ namespace AcousticDataAdapter
                 var waveBuffer = new short[shortNumber];
                 for (int i = 0, j = 0; i < bytesNumber; i += 2, j++)
                     waveBuffer[j] = BitConverter.ToInt16(byteBuffer, i);
+                waveReader.Close();
                 return waveBuffer;               
             }
             catch
@@ -84,9 +135,14 @@ namespace AcousticDataAdapter
                       
         }
 
-        void WriteNumbersToFile(short[][] numbers, string filepath)
+        void WriteNumbersToFile(short[][] numbers, Properties prop, string filepath)
         {
-            StreamWriter ostream = new StreamWriter(filepath);
+            var newFilePath = new System.Text.StringBuilder(filepath.Substring(0, filepath.LastIndexOf('\\') + 1));
+            string fileName = String.Format("{0}-{1};{2}Hz", prop.begin.ToString("s"), prop.end.ToString("s"), prop.frequency);
+            fileName = fileName.Replace(':', '.');
+            newFilePath.Append(fileName).Append(".txt");
+            StreamWriter ostream = new StreamWriter(newFilePath.ToString());
+
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             for (int i = 0; i < length; i++)
             {
@@ -101,6 +157,7 @@ namespace AcousticDataAdapter
                     sb.Append(numbers[2][i]);
                 ostream.WriteLine(sb);
             }
+            ostream.Close();
         }
     }
 
