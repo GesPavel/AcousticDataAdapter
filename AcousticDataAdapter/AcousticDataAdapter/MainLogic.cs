@@ -12,13 +12,47 @@ namespace AcousticDataAdapter
         bool convertChannel1 = false;
         bool convertChannel2 = false;
 
+        public MyDate begin;
+        MyDate end;
+
         public bool ConvertChannel0 { get => convertChannel0; set => convertChannel0 = value; }
         public bool ConvertChannel1 { get => convertChannel1; set => convertChannel1 = value; }
         public bool ConvertChannel2 { get => convertChannel2; set => convertChannel2 = value; }
+        public MyDate Begin { get => begin; set => begin = value; }
+        public MyDate End { get => end; set => end = value; }
 
         public MainLogic()
         {
-           
+            begin = new MyDate();
+            end = new MyDate();
+        }
+
+        public class MyDate
+        {
+            private string year;
+            private string month;
+            private string day;
+            private string hour;
+            private string minute;
+            private string second;
+
+            public string Year { get => year; set => year = value; }
+            public string Month { get => month; set => month = value; }
+            public string Day { get => day; set => day = value; }
+            public string Hour { get => hour; set => hour = value; }
+            public string Minute { get => minute; set => minute = value; }
+            public string Second { get => second; set => second = value; }
+
+            public DateTime GetDateTime()
+            {
+                int year = Int32.Parse(this.year);
+                int month = Int32.Parse(this.month);
+                int day = Int32.Parse(this.day);
+                int hour = Int32.Parse(this.hour);
+                int minute = Int32.Parse(this.minute);
+                int second = Int32.Parse(this.second);
+                return new DateTime(year, month, day, hour, minute, second);
+            }
         }
 
         struct ChannelFiles
@@ -40,6 +74,23 @@ namespace AcousticDataAdapter
 
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
+            DateTime startingDate;
+            DateTime endingDate;
+            try
+            {
+                startingDate = Begin.GetDateTime();
+                endingDate = End.GetDateTime();
+            }
+            catch (FormatException e)
+            {
+               throw new FormatException("Incorrect date format!");
+                //TODO Implement window error
+            }
+            catch (ArgumentNullException e)
+            {
+                throw new ArgumentNullException("Date cannot be empty!");
+                //TODO Implement window error
+            }
             ChannelFiles files = GetFilesFromFolder(pathToSource);
             Properties prop = ExtractFileProperties(files.propertiesFile);
             short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],

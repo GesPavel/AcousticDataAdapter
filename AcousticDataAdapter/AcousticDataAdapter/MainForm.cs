@@ -17,8 +17,26 @@ namespace AcousticDataAdapter
         MainLogic mainLogic;
         public MainForm()
         {
-            mainLogic = new MainLogic();
             InitializeComponent();
+            mainLogic = new MainLogic();
+            mainLogic.ConvertChannel0 = channel0CheckBox.Checked;
+            mainLogic.ConvertChannel1 = channel1CheckBox.Checked;
+            mainLogic.ConvertChannel2 = channel2CheckBox.Checked;
+
+            mainLogic.Begin.Year = beginYearTextbox.Text;
+            mainLogic.Begin.Month = beginMonthTextbox.Text;
+            mainLogic.Begin.Day = beginDayTextbox.Text;
+            mainLogic.Begin.Hour = beginHourTextbox.Text;
+            mainLogic.Begin.Minute = beginMinuteTextbox.Text;
+            mainLogic.Begin.Second = beginSecondTextbox.Text;
+
+            mainLogic.End.Year = endYearTextbox.Text;
+            mainLogic.End.Month = endMonthTextbox.Text;
+            mainLogic.End.Day = endDayTextbox.Text;
+            mainLogic.End.Hour = endHourTextbox.Text;
+            mainLogic.End.Minute = endMinuteTextbox.Text;
+            mainLogic.End.Second = endSecondTextbox.Text;
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -61,6 +79,66 @@ namespace AcousticDataAdapter
         private void channel0CheckBox_CheckedChanged(object sender, EventArgs e)
         {
             mainLogic.ConvertChannel0 = channel0CheckBox.Checked;
+        }
+
+        private void BeginYearTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Year = beginYearTextbox.Text;
+        }
+
+        private void BeginMonthTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Month = beginMonthTextbox.Text;
+        }
+
+        private void BeginDayTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Day = beginDayTextbox.Text;
+        }
+
+        private void BeginHourTextbox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Hour = beginHourTextbox.Text;
+        }
+
+        private void BeginMinuteTextbox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Minute = beginMinuteTextbox.Text;
+        }
+
+        private void BeginSecondTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.Begin.Second = beginSecondTextbox.Text;
+        }
+
+        private void EndYearTextbox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Year = endYearTextbox.Text;
+        }
+
+        private void EndMonthTextbox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Month = endMonthTextbox.Text;
+        }
+
+        private void EndDayTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Day = endDayTextbox.Text;
+        }
+
+        private void EndHourTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Hour = endHourTextbox.Text;
+        }
+
+        private void EndMinuteTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Minute = endMinuteTextbox.Text;
+        }
+
+        private void EndSecondTextBox_TextChanged(object sender, EventArgs e)
+        {
+            mainLogic.End.Second = endSecondTextbox.Text;
         }
     }
 }
