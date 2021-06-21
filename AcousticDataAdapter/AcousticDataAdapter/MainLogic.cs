@@ -91,15 +91,71 @@ namespace AcousticDataAdapter
                 throw new ArgumentNullException("Date cannot be empty!");
                 //TODO Implement window error
             }
-            ChannelFiles files = GetFilesFromFolder(pathToSource);
-            Properties prop = ExtractFileProperties(files.propertiesFile);
-            short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+            string[] folders = GetListOfFolders(pathToSource);
+            Array.Sort(folders);
+            bool atLeastOneFolderIsFound = false;
+            foreach(string folder in folders)
+            {
+                DateTime dt = ParseDateTimeFromName(folder);
+                if (startingDate <= dt && dt <= endingDate)
+                {
+                    ChannelFiles files = GetFilesFromFolder(folder);
+                    Properties prop = ExtractFileProperties(files.propertiesFile);
+                    short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                     ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                     ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                 };
-            WriteNumbersToFile(numbers, prop, pathToDest);
+                    WriteNumbersToFile(numbers, prop, pathToDest);
+                    atLeastOneFolderIsFound = true;
+                }
+            }
+            if (atLeastOneFolderIsFound)
+                Console.WriteLine("Done!");
+            else
+                throw new DirectoryNotFoundException("There is no WAV files recorded in the interval in the directory.");
+
         }
 
+
+        string[] GetListOfFolders(string path)
+        {
+            string[] folders;
+            try
+            {
+                folders = Directory.GetDirectories(path);
+            }
+            catch
+            {
+                throw new DirectoryNotFoundException();
+            }
+            return folders;
+        }
+
+        DateTime ParseDateTimeFromName(string filepath)
+        {
+            try
+            {
+                string folder = filepath.Substring(filepath.LastIndexOf('\\') + 1);
+            int year = 2000 + Int32.Parse(folder.Substring(0, 2));
+            int month = Int32.Parse(folder.Substring(3, 2));
+            int day = Int32.Parse(folder.Substring(6, 2));
+            int hour = Int32.Parse(folder.Substring(9, 2));
+            int minute = Int32.Parse(folder.Substring(12, 2));
+            int second = Int32.Parse(folder.Substring(15, 2));
+            return new DateTime(year, month, day, hour, minute, second);
+
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                throw new ArgumentOutOfRangeException("Incorrect folder is chosen!");
+                //TODO Implement window error
+            }
+            catch (FormatException e)
+            {
+                throw new FormatException("Incorrect folder format!");
+                //TODO Implement window error
+            }
+        }
 
         ChannelFiles GetFilesFromFolder(string pathToSource)
         {
