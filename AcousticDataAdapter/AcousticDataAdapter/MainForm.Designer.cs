@@ -28,23 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.FileChooserButton = new System.Windows.Forms.Button();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.channel0CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel1CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel2CheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(298, 80);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
-            this.textBox1.TabIndex = 0;
-            this.textBox1.Text = "Hello World";
-            // 
-            // folderBrowserDialog
-            // 
-            this.folderBrowserDialog.Description = "Select a folder with WAV files";
             // 
             // FileChooserButton
             // 
@@ -61,13 +51,52 @@
             this.saveFileDialog.Filter = "Text File|*.txt";
             this.saveFileDialog.Title = "Save an Image File";
             // 
+            // folderBrowserDialog
+            // 
+            this.folderBrowserDialog.Description = "Select a folder with WAV files";
+            // 
+            // channel0CheckBox
+            // 
+            this.channel0CheckBox.AutoSize = true;
+            this.channel0CheckBox.Location = new System.Drawing.Point(12, 60);
+            this.channel0CheckBox.Name = "channel0CheckBox";
+            this.channel0CheckBox.Size = new System.Drawing.Size(106, 17);
+            this.channel0CheckBox.TabIndex = 2;
+            this.channel0CheckBox.Text = "Enable channel0";
+            this.channel0CheckBox.UseVisualStyleBackColor = true;
+            this.channel0CheckBox.CheckedChanged += new System.EventHandler(this.channel0CheckBox_CheckedChanged);
+            // 
+            // channel1CheckBox
+            // 
+            this.channel1CheckBox.AutoSize = true;
+            this.channel1CheckBox.Location = new System.Drawing.Point(12, 95);
+            this.channel1CheckBox.Name = "channel1CheckBox";
+            this.channel1CheckBox.Size = new System.Drawing.Size(106, 17);
+            this.channel1CheckBox.TabIndex = 3;
+            this.channel1CheckBox.Text = "Enable channel1";
+            this.channel1CheckBox.UseVisualStyleBackColor = true;
+            this.channel1CheckBox.CheckedChanged += new System.EventHandler(this.Channel1CheckBox_CheckedChanged);
+            // 
+            // channel2CheckBox
+            // 
+            this.channel2CheckBox.AutoSize = true;
+            this.channel2CheckBox.Location = new System.Drawing.Point(12, 129);
+            this.channel2CheckBox.Name = "channel2CheckBox";
+            this.channel2CheckBox.Size = new System.Drawing.Size(106, 17);
+            this.channel2CheckBox.TabIndex = 4;
+            this.channel2CheckBox.Text = "Enable channel2";
+            this.channel2CheckBox.UseVisualStyleBackColor = true;
+            this.channel2CheckBox.CheckedChanged += new System.EventHandler(this.Channel2CheckBox_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.channel2CheckBox);
+            this.Controls.Add(this.channel1CheckBox);
+            this.Controls.Add(this.channel0CheckBox);
             this.Controls.Add(this.FileChooserButton);
-            this.Controls.Add(this.textBox1);
             this.Name = "MainForm";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -77,11 +106,12 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button FileChooserButton;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
+        private System.Windows.Forms.CheckBox channel0CheckBox;
+        private System.Windows.Forms.CheckBox channel1CheckBox;
+        private System.Windows.Forms.CheckBox channel2CheckBox;
     }
 }
 

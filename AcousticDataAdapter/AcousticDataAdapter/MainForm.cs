@@ -46,5 +46,21 @@ namespace AcousticDataAdapter
                 }
             }
         }
+
+
+        private void Channel1CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            mainLogic.ConvertChannel1 = channel1CheckBox.Checked;
+        }
+
+        private void Channel2CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            mainLogic.ConvertChannel2 = channel2CheckBox.Checked;
+        }
+
+        private void channel0CheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            mainLogic.ConvertChannel0 = channel0CheckBox.Checked;
+        }
     }
 }

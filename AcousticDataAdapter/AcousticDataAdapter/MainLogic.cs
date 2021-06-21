@@ -8,6 +8,14 @@ namespace AcousticDataAdapter
 {
     class MainLogic
     {
+        bool convertChannel0 = false;
+        bool convertChannel1 = false;
+        bool convertChannel2 = false;
+
+        public bool ConvertChannel0 { get => convertChannel0; set => convertChannel0 = value; }
+        public bool ConvertChannel1 { get => convertChannel1; set => convertChannel1 = value; }
+        public bool ConvertChannel2 { get => convertChannel2; set => convertChannel2 = value; }
+
         public MainLogic()
         {
            
@@ -23,9 +31,9 @@ namespace AcousticDataAdapter
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
             ChannelFiles files = GetFilesFromFolder(pathToSource);
-            short[][] numbers = {   ConvertWAVtoShortArray(files.channel0File),
-                                    ConvertWAVtoShortArray(files.channel1File),
-                                    ConvertWAVtoShortArray(files.channel2File)
+            short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+                                    ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
+                                    ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                 };
             WriteNumbersToFile(numbers, pathToDest);
         }
@@ -79,7 +87,6 @@ namespace AcousticDataAdapter
         void WriteNumbersToFile(short[][] numbers, string filepath)
         {
             StreamWriter ostream = new StreamWriter(filepath);
-            ostream.WriteLine(String.Format("{0,-6} {1,-6} {2,-6}", "0", "1", "2"));
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             for (int i = 0; i < length; i++)
             {
