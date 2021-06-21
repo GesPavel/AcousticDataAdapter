@@ -91,26 +91,51 @@ namespace AcousticDataAdapter
                 throw new ArgumentNullException("Date cannot be empty!");
                 //TODO Implement window error
             }
+
+
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
+
             bool atLeastOneFolderIsFound = false;
-            foreach(string folder in folders)
+            StreamWriter ostream = null;
+
+            foreach (string folder in folders)
             {
                 DateTime dt = ParseDateTimeFromName(folder);
-                if (startingDate <= dt && dt <= endingDate)
+                if (startingDate <= dt)
                 {
-                    ChannelFiles files = GetFilesFromFolder(folder);
-                    Properties prop = ExtractFileProperties(files.propertiesFile);
-                    short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+                    if (dt <= endingDate)
+                    {
+                        
+                        ChannelFiles files = GetFilesFromFolder(folder);
+                        short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                     ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                     ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                 };
-                    WriteNumbersToFile(numbers, prop, pathToDest);
-                    atLeastOneFolderIsFound = true;
+
+                        if (!atLeastOneFolderIsFound)
+                        {
+                            Properties prop = ExtractFileProperties(files.propertiesFile);
+                            prop.begin = startingDate;
+                            prop.end = endingDate;
+                            atLeastOneFolderIsFound = true;
+                            string destinationPath = CompileDestinationPath(pathToDest, prop);
+                            ostream = new StreamWriter(destinationPath);
+                        }
+
+                        WriteNumbersToFile(numbers, ostream);                      
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
             if (atLeastOneFolderIsFound)
+            {
+                ostream.Close();
                 Console.WriteLine("Done!");
+            }
             else
                 throw new DirectoryNotFoundException("There is no WAV files recorded in the interval in the directory.");
 
@@ -135,7 +160,7 @@ namespace AcousticDataAdapter
         {
             try
             {
-                string folder = filepath.Substring(filepath.LastIndexOf('\\') + 1);
+            string folder = filepath.Substring(filepath.LastIndexOf('\\') + 1);
             int year = 2000 + Int32.Parse(folder.Substring(0, 2));
             int month = Int32.Parse(folder.Substring(3, 2));
             int day = Int32.Parse(folder.Substring(6, 2));
@@ -242,14 +267,18 @@ namespace AcousticDataAdapter
                       
         }
 
-        void WriteNumbersToFile(short[][] numbers, Properties prop, string filepath)
+
+        string CompileDestinationPath(string filepath, Properties prop)
         {
             var newFilePath = new System.Text.StringBuilder(filepath.Substring(0, filepath.LastIndexOf('\\') + 1));
             string fileName = String.Format("{0}-{1};{2}Hz", prop.begin.ToString("s"), prop.end.ToString("s"), prop.frequency);
             fileName = fileName.Replace(':', '.');
             newFilePath.Append(fileName).Append(".txt");
-            StreamWriter ostream = new StreamWriter(newFilePath.ToString());
+            return newFilePath.ToString();
+        }
 
+        void WriteNumbersToFile(short[][] numbers, StreamWriter ostream)
+        { 
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             for (int i = 0; i < length; i++)
             {
@@ -264,7 +293,6 @@ namespace AcousticDataAdapter
                     sb.Append(numbers[2][i]);
                 ostream.WriteLine(sb);
             }
-            ostream.Close();
         }
     }
 
