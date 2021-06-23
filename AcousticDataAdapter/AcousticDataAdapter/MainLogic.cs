@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ namespace AcousticDataAdapter
         bool convertChannel0 = false;
         bool convertChannel1 = false;
         bool convertChannel2 = false;
+        bool compressTextFile = true;
 
         public MyDate begin;
         MyDate end;
@@ -18,6 +20,7 @@ namespace AcousticDataAdapter
         public bool ConvertChannel0 { get => convertChannel0; set => convertChannel0 = value; }
         public bool ConvertChannel1 { get => convertChannel1; set => convertChannel1 = value; }
         public bool ConvertChannel2 { get => convertChannel2; set => convertChannel2 = value; }
+        public bool CompressTextFile { get => compressTextFile; set => compressTextFile = value; }
         public MyDate Begin { get => begin; set => begin = value; }
         public MyDate End { get => end; set => end = value; }
 
@@ -72,8 +75,10 @@ namespace AcousticDataAdapter
             public int samples;
         }
 
+        
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
+            
             DateTime startingDate;
             DateTime endingDate;
             try
@@ -96,6 +101,7 @@ namespace AcousticDataAdapter
 
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
+            string destinationPath = "";
 
             int foldersFound = 0;
             StreamWriter ostream = null;
@@ -116,7 +122,7 @@ namespace AcousticDataAdapter
                         Properties globalProp = prevProp;
                         globalProp.begin = startingDate;
                         globalProp.end = endingDate;
-                        string destinationPath = CompileDestinationPath(pathToDest, globalProp);
+                        destinationPath = CompileDestinationPath(pathToDest, globalProp);
                         ostream = new StreamWriter(destinationPath);
 
                         int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000  *  prevProp.frequency);
@@ -162,14 +168,13 @@ namespace AcousticDataAdapter
             {
                 throw new MissingDataException("There is not enough folders to fill until ending date");
             }
-            if (foldersFound > 0)
-            {
-                ostream.Close();
-                Console.WriteLine("Done!");
-            }
-            else
+            if (foldersFound == 0)
                 throw new MissingDataException("There is no WAV files recorded in the interval in the directory.");
 
+            ostream.Close();
+            if (compressTextFile)
+                CompressFile(destinationPath);         
+            Console.WriteLine("Done!");
         }
 
 
@@ -304,7 +309,9 @@ namespace AcousticDataAdapter
             var newFilePath = new System.Text.StringBuilder(filepath.Substring(0, filepath.LastIndexOf('\\') + 1));
             string fileName = String.Format("{0}-{1};{2}Hz", prop.begin.ToString("s"), prop.end.ToString("s"), prop.frequency);
             fileName = fileName.Replace(':', '.');
-            newFilePath.Append(fileName).Append(".txt");
+            newFilePath.Append(fileName);
+            Directory.CreateDirectory(newFilePath.ToString());
+            newFilePath.Append("\\data.txt");
             return newFilePath.ToString();
         }
 
@@ -335,6 +342,14 @@ namespace AcousticDataAdapter
                     sb.Append(numbers[2][i]);
                 ostream.WriteLine(sb);
             }
+        }
+
+        void CompressFile(string pathToFile)
+        {
+            string tempFolder = pathToFile.Substring(0, pathToFile.LastIndexOf('\\'));
+            string zipPath = tempFolder + ".zip";
+            ZipFile.CreateFromDirectory(tempFolder, zipPath);
+            Directory.Delete(tempFolder, true);
         }
     }
 }

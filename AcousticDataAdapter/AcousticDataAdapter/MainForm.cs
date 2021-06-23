@@ -19,9 +19,10 @@ namespace AcousticDataAdapter
         {
             InitializeComponent();
             mainLogic = new MainLogic();
-            mainLogic.ConvertChannel0 = channel0CheckBox.Checked;
-            mainLogic.ConvertChannel1 = channel1CheckBox.Checked;
-            mainLogic.ConvertChannel2 = channel2CheckBox.Checked;
+            mainLogic.ConvertChannel0 = channel0Checkbox.Checked;
+            mainLogic.ConvertChannel1 = channel1Checkbox.Checked;
+            mainLogic.ConvertChannel2 = channel2Checkbox.Checked;
+            mainLogic.CompressTextFile = compressCheckbox.Checked;
 
             mainLogic.Begin.Year = beginYearTextbox.Text;
             mainLogic.Begin.Month = beginMonthTextbox.Text;
@@ -29,6 +30,7 @@ namespace AcousticDataAdapter
             mainLogic.Begin.Hour = beginHourTextbox.Text;
             mainLogic.Begin.Minute = beginMinuteTextbox.Text;
             mainLogic.Begin.Second = beginSecondTextbox.Text;
+
 
             mainLogic.End.Year = endYearTextbox.Text;
             mainLogic.End.Month = endMonthTextbox.Text;
@@ -57,10 +59,10 @@ namespace AcousticDataAdapter
                         mainLogic.OpenFolderAndSaveConversionResult(filePath, filePath2);
                     }
                 }
-                catch (SecurityException ex)
+                catch(Exception ex)
                 {
-                    MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
-                    $"Details:\n\n{ex.StackTrace}");
+                    MessageBox.Show(ex.Message.ToString(), "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -68,17 +70,22 @@ namespace AcousticDataAdapter
 
         private void Channel1CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            mainLogic.ConvertChannel1 = channel1CheckBox.Checked;
+            mainLogic.ConvertChannel1 = channel1Checkbox.Checked;
         }
 
         private void Channel2CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            mainLogic.ConvertChannel2 = channel2CheckBox.Checked;
+            mainLogic.ConvertChannel2 = channel2Checkbox.Checked;
         }
 
         private void channel0CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            mainLogic.ConvertChannel0 = channel0CheckBox.Checked;
+            mainLogic.ConvertChannel0 = channel0Checkbox.Checked;
+        }
+
+        private void CompressCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            mainLogic.CompressTextFile = compressCheckbox.Checked;
         }
 
         private void BeginYearTextBox_TextChanged(object sender, EventArgs e)
@@ -140,5 +147,6 @@ namespace AcousticDataAdapter
         {
             mainLogic.End.Second = endSecondTextbox.Text;
         }
+
     }
 }

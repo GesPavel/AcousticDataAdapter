@@ -31,9 +31,9 @@
             this.FileChooserButton = new System.Windows.Forms.Button();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.channel0CheckBox = new System.Windows.Forms.CheckBox();
-            this.channel1CheckBox = new System.Windows.Forms.CheckBox();
-            this.channel2CheckBox = new System.Windows.Forms.CheckBox();
+            this.channel0Checkbox = new System.Windows.Forms.CheckBox();
+            this.channel1Checkbox = new System.Windows.Forms.CheckBox();
+            this.channel2Checkbox = new System.Windows.Forms.CheckBox();
             this.beginDateLabel = new System.Windows.Forms.Label();
             this.yearLabel = new System.Windows.Forms.Label();
             this.monthLabel = new System.Windows.Forms.Label();
@@ -62,6 +62,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.endYearTextbox = new System.Windows.Forms.TextBox();
+            this.compressCheckbox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // FileChooserButton
@@ -83,44 +84,44 @@
             // 
             this.folderBrowserDialog.Description = "Select a folder with WAV files";
             // 
-            // channel0CheckBox
+            // channel0Checkbox
             // 
-            this.channel0CheckBox.AutoSize = true;
-            this.channel0CheckBox.Checked = true;
-            this.channel0CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.channel0CheckBox.Location = new System.Drawing.Point(12, 60);
-            this.channel0CheckBox.Name = "channel0CheckBox";
-            this.channel0CheckBox.Size = new System.Drawing.Size(106, 17);
-            this.channel0CheckBox.TabIndex = 2;
-            this.channel0CheckBox.Text = "Enable channel0";
-            this.channel0CheckBox.UseVisualStyleBackColor = true;
-            this.channel0CheckBox.CheckedChanged += new System.EventHandler(this.channel0CheckBox_CheckedChanged);
+            this.channel0Checkbox.AutoSize = true;
+            this.channel0Checkbox.Checked = true;
+            this.channel0Checkbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.channel0Checkbox.Location = new System.Drawing.Point(12, 60);
+            this.channel0Checkbox.Name = "channel0Checkbox";
+            this.channel0Checkbox.Size = new System.Drawing.Size(106, 17);
+            this.channel0Checkbox.TabIndex = 2;
+            this.channel0Checkbox.Text = "Enable channel0";
+            this.channel0Checkbox.UseVisualStyleBackColor = true;
+            this.channel0Checkbox.CheckedChanged += new System.EventHandler(this.channel0CheckBox_CheckedChanged);
             // 
-            // channel1CheckBox
+            // channel1Checkbox
             // 
-            this.channel1CheckBox.AutoSize = true;
-            this.channel1CheckBox.Checked = true;
-            this.channel1CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.channel1CheckBox.Location = new System.Drawing.Point(12, 95);
-            this.channel1CheckBox.Name = "channel1CheckBox";
-            this.channel1CheckBox.Size = new System.Drawing.Size(106, 17);
-            this.channel1CheckBox.TabIndex = 3;
-            this.channel1CheckBox.Text = "Enable channel1";
-            this.channel1CheckBox.UseVisualStyleBackColor = true;
-            this.channel1CheckBox.CheckedChanged += new System.EventHandler(this.Channel1CheckBox_CheckedChanged);
+            this.channel1Checkbox.AutoSize = true;
+            this.channel1Checkbox.Checked = true;
+            this.channel1Checkbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.channel1Checkbox.Location = new System.Drawing.Point(12, 95);
+            this.channel1Checkbox.Name = "channel1Checkbox";
+            this.channel1Checkbox.Size = new System.Drawing.Size(106, 17);
+            this.channel1Checkbox.TabIndex = 3;
+            this.channel1Checkbox.Text = "Enable channel1";
+            this.channel1Checkbox.UseVisualStyleBackColor = true;
+            this.channel1Checkbox.CheckedChanged += new System.EventHandler(this.Channel1CheckBox_CheckedChanged);
             // 
-            // channel2CheckBox
+            // channel2Checkbox
             // 
-            this.channel2CheckBox.AutoSize = true;
-            this.channel2CheckBox.Checked = true;
-            this.channel2CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.channel2CheckBox.Location = new System.Drawing.Point(12, 129);
-            this.channel2CheckBox.Name = "channel2CheckBox";
-            this.channel2CheckBox.Size = new System.Drawing.Size(106, 17);
-            this.channel2CheckBox.TabIndex = 4;
-            this.channel2CheckBox.Text = "Enable channel2";
-            this.channel2CheckBox.UseVisualStyleBackColor = true;
-            this.channel2CheckBox.CheckedChanged += new System.EventHandler(this.Channel2CheckBox_CheckedChanged);
+            this.channel2Checkbox.AutoSize = true;
+            this.channel2Checkbox.Checked = true;
+            this.channel2Checkbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.channel2Checkbox.Location = new System.Drawing.Point(12, 129);
+            this.channel2Checkbox.Name = "channel2Checkbox";
+            this.channel2Checkbox.Size = new System.Drawing.Size(106, 17);
+            this.channel2Checkbox.TabIndex = 4;
+            this.channel2Checkbox.Text = "Enable channel2";
+            this.channel2Checkbox.UseVisualStyleBackColor = true;
+            this.channel2Checkbox.CheckedChanged += new System.EventHandler(this.Channel2CheckBox_CheckedChanged);
             // 
             // beginDateLabel
             // 
@@ -374,11 +375,25 @@
             this.endYearTextbox.Text = "2021";
             this.endYearTextbox.TextChanged += new System.EventHandler(this.EndYearTextbox_TextChanged);
             // 
+            // compressCheckbox
+            // 
+            this.compressCheckbox.AutoSize = true;
+            this.compressCheckbox.Checked = true;
+            this.compressCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.compressCheckbox.Location = new System.Drawing.Point(12, 205);
+            this.compressCheckbox.Name = "compressCheckbox";
+            this.compressCheckbox.Size = new System.Drawing.Size(121, 17);
+            this.compressCheckbox.TabIndex = 42;
+            this.compressCheckbox.Text = "Compress output file";
+            this.compressCheckbox.UseVisualStyleBackColor = true;
+            this.compressCheckbox.CheckedChanged += new System.EventHandler(this.CompressCheckbox_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.compressCheckbox);
             this.Controls.Add(this.endSecondTextbox);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.endMinuteTextbox);
@@ -407,9 +422,9 @@
             this.Controls.Add(this.monthLabel);
             this.Controls.Add(this.yearLabel);
             this.Controls.Add(this.beginDateLabel);
-            this.Controls.Add(this.channel2CheckBox);
-            this.Controls.Add(this.channel1CheckBox);
-            this.Controls.Add(this.channel0CheckBox);
+            this.Controls.Add(this.channel2Checkbox);
+            this.Controls.Add(this.channel1Checkbox);
+            this.Controls.Add(this.channel0Checkbox);
             this.Controls.Add(this.FileChooserButton);
             this.Name = "MainForm";
             this.Text = "Form1";
@@ -423,9 +438,9 @@
         private System.Windows.Forms.Button FileChooserButton;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
-        private System.Windows.Forms.CheckBox channel0CheckBox;
-        private System.Windows.Forms.CheckBox channel1CheckBox;
-        private System.Windows.Forms.CheckBox channel2CheckBox;
+        private System.Windows.Forms.CheckBox channel0Checkbox;
+        private System.Windows.Forms.CheckBox channel1Checkbox;
+        private System.Windows.Forms.CheckBox channel2Checkbox;
         private System.Windows.Forms.Label beginDateLabel;
         private System.Windows.Forms.Label yearLabel;
         private System.Windows.Forms.Label monthLabel;
@@ -454,6 +469,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox endYearTextbox;
+        private System.Windows.Forms.CheckBox compressCheckbox;
     }
 }
 
