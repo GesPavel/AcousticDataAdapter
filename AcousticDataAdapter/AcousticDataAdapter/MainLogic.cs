@@ -91,14 +91,16 @@ namespace AcousticDataAdapter
                 throw new ArgumentNullException("Date cannot be empty!");
                 //TODO Implement window error
             }
-
+            if (endingDate < startingDate)
+                throw new FormatException("Ending date cannot be earlier than starting date");
 
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
 
-            bool atLeastOneFolderIsFound = false;
+            int foldersFound = 0;
             StreamWriter ostream = null;
             string previousFolder = "";
+            DateTime prevEndingDate = new DateTime();
 
             foreach (string folder in folders)
             {
@@ -106,8 +108,8 @@ namespace AcousticDataAdapter
                 if (startingDate <= dt)
                 {
                     if (previousFolder.Length == 0)
-                        throw new ArgumentOutOfRangeException("Theres is no entries for entered starting date!");
-                    else if (!atLeastOneFolderIsFound)
+                        throw new MissingDataException("Theres is no entries for entered starting date!");
+                    else if (foldersFound == 0)
                     {
                         ChannelFiles prevFiles = GetFilesFromFolder(previousFolder);
                         Properties prevProp = ExtractFileProperties(prevFiles.propertiesFile);
@@ -124,36 +126,49 @@ namespace AcousticDataAdapter
                                                 };
                         WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
-                        atLeastOneFolderIsFound = true;
+                       foldersFound++;
+                       prevEndingDate = prevProp.end;
                     }
 
                     ChannelFiles files = GetFilesFromFolder(folder);
                     Properties prop = ExtractFileProperties(files.propertiesFile);
+                    if (prevEndingDate != prop.begin)
+                        throw new MissingDataException(String.Format("Some folders in the interval are missing! There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
                     short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                             ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                             ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                         };
-                    if (prop.end <= endingDate)
-                        WriteNumbersToFile(numbers, ostream);                      
+                    if (prop.end <= endingDate) {
+                        WriteNumbersToFile(numbers, ostream);
+                        foldersFound++;
+                    }
+
                     else if (prop.begin < endingDate)
                     {
                         int ticksDifference = (int)((endingDate - prop.begin).TotalMilliseconds / 1000 * prop.frequency);
                         WriteNumbersToFile(numbers, 0, ticksDifference, ostream);
+                        foldersFound++;
                     }
                     else
                     {
                         break;
                     }
+                    prevEndingDate = prop.end;
                 }
                 previousFolder = folder;
+                
             }
-            if (atLeastOneFolderIsFound)
+            if (prevEndingDate < endingDate)
+            {
+                throw new MissingDataException("There is not enough folders to fill until ending date");
+            }
+            if (foldersFound > 0)
             {
                 ostream.Close();
                 Console.WriteLine("Done!");
             }
             else
-                throw new DirectoryNotFoundException("There is no WAV files recorded in the interval in the directory.");
+                throw new MissingDataException("There is no WAV files recorded in the interval in the directory.");
 
         }
 
