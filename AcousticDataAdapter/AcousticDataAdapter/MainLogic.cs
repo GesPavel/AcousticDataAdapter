@@ -98,38 +98,54 @@ namespace AcousticDataAdapter
 
             bool atLeastOneFolderIsFound = false;
             StreamWriter ostream = null;
+            string previousFolder = "";
 
             foreach (string folder in folders)
             {
                 DateTime dt = ParseDateTimeFromName(folder);
                 if (startingDate <= dt)
                 {
-                    if (dt <= endingDate)
+                    if (previousFolder.Length == 0)
+                        throw new ArgumentOutOfRangeException("Theres is no entries for entered starting date!");
+                    else if (!atLeastOneFolderIsFound)
                     {
-                        
-                        ChannelFiles files = GetFilesFromFolder(folder);
-                        short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
-                                    ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
-                                    ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
-                                };
+                        ChannelFiles prevFiles = GetFilesFromFolder(previousFolder);
+                        Properties prevProp = ExtractFileProperties(prevFiles.propertiesFile);
+                        Properties globalProp = prevProp;
+                        globalProp.begin = startingDate;
+                        globalProp.end = endingDate;
+                        string destinationPath = CompileDestinationPath(pathToDest, globalProp);
+                        ostream = new StreamWriter(destinationPath);
 
-                        if (!atLeastOneFolderIsFound)
-                        {
-                            Properties prop = ExtractFileProperties(files.propertiesFile);
-                            prop.begin = startingDate;
-                            prop.end = endingDate;
-                            atLeastOneFolderIsFound = true;
-                            string destinationPath = CompileDestinationPath(pathToDest, prop);
-                            ostream = new StreamWriter(destinationPath);
-                        }
+                        int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000  *  prevProp.frequency);
+                        short[][] prevNumbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
+                                                    ConvertChannel1 ? ConvertWAVtoShortArray(prevFiles.channel1File) : new short[0],
+                                                    ConvertChannel2 ? ConvertWAVtoShortArray(prevFiles.channel2File) : new short[0]
+                                                };
+                        WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
+                        atLeastOneFolderIsFound = true;
+                    }
+
+                    ChannelFiles files = GetFilesFromFolder(folder);
+                    Properties prop = ExtractFileProperties(files.propertiesFile);
+                    short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+                                            ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
+                                            ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
+                                        };
+                    if (prop.end <= endingDate)
                         WriteNumbersToFile(numbers, ostream);                      
+                    else if (prop.begin < endingDate)
+                    {
+                        int ticksDifference = (int)((endingDate - prop.begin).TotalMilliseconds / 1000 * prop.frequency);
+                        WriteNumbersToFile(numbers, 0, ticksDifference, ostream);
                     }
                     else
                     {
                         break;
                     }
                 }
+                previousFolder = folder;
             }
             if (atLeastOneFolderIsFound)
             {
@@ -278,9 +294,20 @@ namespace AcousticDataAdapter
         }
 
         void WriteNumbersToFile(short[][] numbers, StreamWriter ostream)
-        { 
+        {
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
-            for (int i = 0; i < length; i++)
+            WriteNumbersToFile(numbers, 0, length, ostream);
+        }
+
+        void WriteNumbersToFile(short[][] numbers, int startIndex, StreamWriter ostream)
+        {
+            int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
+            WriteNumbersToFile(numbers, startIndex, length, ostream);
+        }
+
+        void WriteNumbersToFile(short[][] numbers, int startIndex, int endIndex, StreamWriter ostream)
+        {
+            for (int i = startIndex; i < endIndex; i++)
             {
                 var sb = new System.Text.StringBuilder();
                 if (i < numbers[0].Length)
@@ -295,7 +322,4 @@ namespace AcousticDataAdapter
             }
         }
     }
-
-
-
 }
