@@ -23,6 +23,7 @@ namespace AcousticDataAdapter
             mainLogic.ConvertChannel1 = channel1Checkbox.Checked;
             mainLogic.ConvertChannel2 = channel2Checkbox.Checked;
             mainLogic.CompressTextFile = compressCheckbox.Checked;
+            mainLogic.CheckForIntegrity = integrityCheckbox.Checked;
 
             mainLogic.Begin.Year = beginYearTextbox.Text;
             mainLogic.Begin.Month = beginMonthTextbox.Text;
@@ -148,5 +149,9 @@ namespace AcousticDataAdapter
             mainLogic.End.Second = endSecondTextbox.Text;
         }
 
+        private void IntegrityCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            mainLogic.CheckForIntegrity = integrityCheckbox.Checked;
+        }
     }
 }

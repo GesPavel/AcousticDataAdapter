@@ -13,6 +13,7 @@ namespace AcousticDataAdapter
         bool convertChannel1 = false;
         bool convertChannel2 = false;
         bool compressTextFile = true;
+        bool checkForIntegrity = true;
 
         public MyDate begin;
         MyDate end;
@@ -21,9 +22,10 @@ namespace AcousticDataAdapter
         public bool ConvertChannel1 { get => convertChannel1; set => convertChannel1 = value; }
         public bool ConvertChannel2 { get => convertChannel2; set => convertChannel2 = value; }
         public bool CompressTextFile { get => compressTextFile; set => compressTextFile = value; }
+        public bool CheckForIntegrity { get => checkForIntegrity; set => checkForIntegrity = value; }
+
         public MyDate Begin { get => begin; set => begin = value; }
         public MyDate End { get => end; set => end = value; }
-
         public MainLogic()
         {
             begin = new MyDate();
@@ -102,11 +104,48 @@ namespace AcousticDataAdapter
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
             string destinationPath = "";
+            string logPath = pathToDest;
+
+            if (checkForIntegrity)
+            {
+                string prevFolder = "";
+                DateTime prevEndingDate = new DateTime();
+                int numOfMissingFolders = 0;
+                StreamWriter logStream = new StreamWriter(logPath);
+                foreach (string folder in folders)
+                {
+                    DateTime dt = ParseDateTimeFromName(folder);
+                    if (startingDate <= dt && dt < endingDate.AddMinutes(15))
+                    {
+                        if (prevFolder.Length == 0)
+                        {
+                            prevFolder = folder;
+                            ChannelFiles prevFiles = GetFilesFromFolder(prevFolder);
+                            prevEndingDate = ExtractFileProperties(prevFiles.propertiesFile).end;
+                            continue;
+                        }
+                        ChannelFiles files = GetFilesFromFolder(folder);
+                        Properties prop = ExtractFileProperties(files.propertiesFile);
+                        if (prevEndingDate != prop.begin)
+                        {
+                            numOfMissingFolders++;
+                            logStream.WriteLine(String.Format("There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
+                        }
+                        prevEndingDate = prop.end;    
+
+                    }
+                }
+                logStream.Close();
+                if (numOfMissingFolders > 0)
+                {
+                    throw new MissingDataException(String.Format("There is/are {0} missing folders. See log for details. Abandoning conversion.", numOfMissingFolders));
+                }
+            }
 
             int foldersFound = 0;
             StreamWriter ostream = null;
             string previousFolder = "";
-            DateTime prevEndingDate = new DateTime();
+            DateTime previousEndingDate = new DateTime();
 
             foreach (string folder in folders)
             {
@@ -133,13 +172,11 @@ namespace AcousticDataAdapter
                         WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
                        foldersFound++;
-                       prevEndingDate = prevProp.end;
+                       previousEndingDate = prevProp.end;
                     }
 
                     ChannelFiles files = GetFilesFromFolder(folder);
                     Properties prop = ExtractFileProperties(files.propertiesFile);
-                    if (prevEndingDate != prop.begin)
-                        throw new MissingDataException(String.Format("Some folders in the interval are missing! There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
                     short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                             ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                             ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
@@ -159,12 +196,12 @@ namespace AcousticDataAdapter
                     {
                         break;
                     }
-                    prevEndingDate = prop.end;
+                    previousEndingDate = prop.end;
                 }
                 previousFolder = folder;
                 
             }
-            if (prevEndingDate < endingDate)
+            if (previousEndingDate < endingDate)
             {
                 throw new MissingDataException("There is not enough folders to fill until ending date");
             }

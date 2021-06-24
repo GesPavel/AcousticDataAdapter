@@ -63,6 +63,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.endYearTextbox = new System.Windows.Forms.TextBox();
             this.compressCheckbox = new System.Windows.Forms.CheckBox();
+            this.integrityCheckbox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // FileChooserButton
@@ -388,11 +389,25 @@
             this.compressCheckbox.UseVisualStyleBackColor = true;
             this.compressCheckbox.CheckedChanged += new System.EventHandler(this.CompressCheckbox_CheckedChanged);
             // 
+            // integrityCheckbox
+            // 
+            this.integrityCheckbox.AutoSize = true;
+            this.integrityCheckbox.Checked = true;
+            this.integrityCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.integrityCheckbox.Location = new System.Drawing.Point(12, 246);
+            this.integrityCheckbox.Name = "integrityCheckbox";
+            this.integrityCheckbox.Size = new System.Drawing.Size(135, 17);
+            this.integrityCheckbox.TabIndex = 43;
+            this.integrityCheckbox.Text = "Check for data integrity";
+            this.integrityCheckbox.UseVisualStyleBackColor = true;
+            this.integrityCheckbox.CheckedChanged += new System.EventHandler(this.IntegrityCheckbox_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.integrityCheckbox);
             this.Controls.Add(this.compressCheckbox);
             this.Controls.Add(this.endSecondTextbox);
             this.Controls.Add(this.label1);
@@ -470,6 +485,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox endYearTextbox;
         private System.Windows.Forms.CheckBox compressCheckbox;
+        private System.Windows.Forms.CheckBox integrityCheckbox;
     }
 }
 
