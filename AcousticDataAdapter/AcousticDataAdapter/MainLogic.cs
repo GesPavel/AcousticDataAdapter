@@ -9,12 +9,14 @@ namespace AcousticDataAdapter
 {
     class MainLogic
     {
+        //activation of different funtions of the program, are set in GUI
         bool convertChannel0 = false;
         bool convertChannel1 = false;
         bool convertChannel2 = false;
         bool compressTextFile = true;
         bool checkForIntegrity = true;
 
+        //The start and end points of the intervalof conversion, are set in GUI
         public MyDate begin;
         MyDate end;
 
@@ -32,6 +34,7 @@ namespace AcousticDataAdapter
             end = new MyDate();
         }
 
+        // A structure thatholds Date information in strings. Intermediate element between GUI and DateTime from std library.
         public class MyDate
         {
             private string year;
@@ -60,6 +63,7 @@ namespace AcousticDataAdapter
             }
         }
 
+        //A structure that containsall files read from one folder with data.
         struct ChannelFiles
         {
             public string channel0File;
@@ -68,6 +72,7 @@ namespace AcousticDataAdapter
             public string propertiesFile;
         }
 
+        //A structure that contains viable information from .prop file.
         struct Properties
         {
             public string fileName;
@@ -76,13 +81,17 @@ namespace AcousticDataAdapter
             public int frequency;
             public int samples;
         }
-
-
+        /// <summary>
+        /// Main method  that executes when the button in GUi is pressed.
+        /// </summary>
+        ///<param name = "pathToSource" > A string that contains path to the folder with all data folders.</param>
+        ///<param name = "pathToDestination" > A string that contains path to the folder where the result folder/zip will becreated.</param>
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
 
             DateTime startingDate;
             DateTime endingDate;
+            //  Try to parse dates from GUI input. 
             try
             {
                 startingDate = Begin.GetDateTime();
@@ -99,12 +108,15 @@ namespace AcousticDataAdapter
             if (endingDate < startingDate)
                 throw new FormatException("Ending date cannot be earlier than starting date");
 
+            //Get a list of allfolders with data and sort it for more convenience
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
             bool atLeastOneFolderIsFound = false;
 
             if (checkForIntegrity)
             {
+                //If check for integrity was setto true in GUI then log file is created and all folders are checked for continuity. 
+                //There is an additional check for existence of enough number of folders to fill the whole time interval. 
                 if (ParseDateTimeFromName(folders[0]) > startingDate)
                     throw new ArgumentOutOfRangeException("Theres is no entries for entered starting date!");
                 string logPath = CompilePath(pathToDest, startingDate, endingDate, "log.txt");
@@ -121,6 +133,7 @@ namespace AcousticDataAdapter
                         DateTime dt = ParseDateTimeFromName(folders[i]);
                         if (startingDate <= dt && dt < endingDate)
                         {
+                            //Check every folder in the time interval
                             if (prevFolder.Length == 0)
                             {
                                 prevFolder = folders[i];
@@ -133,6 +146,7 @@ namespace AcousticDataAdapter
                             Properties prop = ExtractFileProperties(files.propertiesFile);
                             if (prevEndingDate != prop.begin)
                             {
+                                //If a time is not coherent, a log entry is written to the file.
                                 numOfMissingFolders++;
                                 logStream.WriteLine(String.Format("There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
                             }
@@ -151,11 +165,14 @@ namespace AcousticDataAdapter
                         throw new MissingDataException(String.Format("There is/are {0} missing folders. See log for details. Abandoning conversion.", numOfMissingFolders));
                     }
                 }
+                //If there are missing files justrethrow the exception
                 catch (MissingDataException e) {
                     throw new MissingDataException(e.Message);
                 }
+                //In all other cases we also need to delete the log file since the information in it is no coherent.
                 catch (Exception e)
                 {
+                    //
                     if (logStream != null)
                     {
                         logStream.Flush();
@@ -175,6 +192,7 @@ namespace AcousticDataAdapter
                 }
             }
 
+            //Try to convert every folderin the path and write the result into one text file
             string destinationPath = CompilePath(pathToDest, startingDate, endingDate, "result.txt");
             StreamWriter ostream = new StreamWriter(destinationPath);
             string previousFolder = "";
@@ -190,40 +208,47 @@ namespace AcousticDataAdapter
                     {
                         if (foldersFound == 0)
                         {
+                            //If the folder is the firstwhich name falls into the intervalthereis a need for converting asome part of previous folder that  contains the beginning of the interval.  
                             ChannelFiles prevFiles = GetFilesFromFolder(previousFolder);
                             Properties prevProp = ExtractFileProperties(prevFiles.propertiesFile);
 
-                            int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000 * prevProp.frequency);
-                            short[][] prevNumbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
+                            int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000 * prevProp.frequency); //Calculate the amount of elements thatneeds to be written
+
+                            short[][] prevNumbers = {
+                                                    ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
                                                     ConvertChannel1 ? ConvertWAVtoShortArray(prevFiles.channel1File) : new short[0],
                                                     ConvertChannel2 ? ConvertWAVtoShortArray(prevFiles.channel2File) : new short[0]
-                                                };
+                                                    };
                             WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
                             foldersFound++;
                             previousEndingDate = prevProp.end;
                         }
-
+                        //Get all info about current folder.
                         ChannelFiles files = GetFilesFromFolder(folder);
                         Properties prop = ExtractFileProperties(files.propertiesFile);
-                        short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+                        short[][] numbers = {
+                                            ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                             ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                             ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
-                                        };
+                                            };
                         if (prop.end <= endingDate)
                         {
+                            //IFthe current folder lies entirely inside of theinterval, write everything to the file.
                             WriteNumbersToFile(numbers, ostream);
                             foldersFound++;
                         }
 
                         else if (prop.begin < endingDate)
                         {
+                            //If only a part of the filelies inside the interval calculate the amountof elemetns to be written into the text file.
                             int ticksDifference = (int)((endingDate - prop.begin).TotalMilliseconds / 1000 * prop.frequency);
                             WriteNumbersToFile(numbers, 0, ticksDifference, ostream);
                             foldersFound++;
                         }
                         else
                         {
+                            //If the file is outside of the interval - finish up the loop.
                             break;
                         }
                         previousEndingDate = prop.end;
@@ -242,10 +267,15 @@ namespace AcousticDataAdapter
                 }
             }
             if (compressTextFile)
+                //If compressing was set on in the GUI invoke compression of the resulting files
                 CompressFile(destinationPath);   
         }
 
-
+        /// <summary>
+        /// Returns a list of all subfolders in a folder.
+        /// </summary>
+        ///<param name = "path" > A path to the folder.</param>
+        ///<returns> An array with all paths to subfolders.</returns>
         string[] GetListOfFolders(string path)
         {
             string[] folders;
@@ -260,11 +290,16 @@ namespace AcousticDataAdapter
             return folders;
         }
 
-        DateTime ParseDateTimeFromName(string filepath)
+        /// <summary>
+        /// Parses date and time from the name of the folder  with data.
+        /// </summary>
+        ///<param name = "path" > A path to the folder.</param>
+        ///<returns> The parsed date and time.</returns>
+        DateTime ParseDateTimeFromName(string path)
         {
             try
             {
-            string folder = filepath.Substring(filepath.LastIndexOf('\\') + 1);
+            string folder = path.Substring(path.LastIndexOf('\\') + 1);
             int year = 2000 + Int32.Parse(folder.Substring(0, 2));
             int month = Int32.Parse(folder.Substring(3, 2));
             int day = Int32.Parse(folder.Substring(6, 2));
@@ -284,12 +319,17 @@ namespace AcousticDataAdapter
             }
         }
 
-        ChannelFiles GetFilesFromFolder(string pathToSource)
+        /// <summary>
+        /// Gets all WAV files that are in line for conversion and the properties file from a folder with data and returns a struct which contains them all.
+        /// </summary>
+        ///<param name = "path" > A path to the folder.</param>
+        ///<returns> Struct with all files.</returns>
+        ChannelFiles GetFilesFromFolder(string path)
         {
             string[] files;
             try
             {
-                files = Directory.GetFiles(pathToSource);
+                files = Directory.GetFiles(path);
             }
             catch
             {
@@ -310,6 +350,11 @@ namespace AcousticDataAdapter
             return channels;
         }
 
+        /// <summary>
+        /// Reads properties from properties file and returns a struct with all the info.
+        /// </summary>
+        ///<param name = "path" > A path to the properties file.</param>
+        ///<returns> A struct with all relevant information about the conversion parameters.</returns>
         Properties ExtractFileProperties(string path)
         {
             Properties prop = new Properties();
@@ -336,6 +381,11 @@ namespace AcousticDataAdapter
             return prop;
         }
 
+        /// <summary>
+        /// Parses date from a string in the format written in properties files.
+        /// </summary>
+        ///<param name = "str" > A string with a Date.</param>
+        ///<returns> The parsed date and time.</returns>
         DateTime ParseDate(string str)
         {
             int year = Int32.Parse(str.Substring(0, 4));  
@@ -346,12 +396,18 @@ namespace AcousticDataAdapter
             int second = Int32.Parse(str.Substring(17, 2));
             return new DateTime(year, month, day, hour, minute, second);
         }
-        short[] ConvertWAVtoShortArray(string filepath)
+
+        /// <summary>
+        /// Uses NAudio library to read a WAAV file and convert it to a short array.
+        /// </summary>
+        ///<param name = "path" > A path to the WAV file.</param>
+        ///<returns> A short array with data extracted from the file.</returns>
+        short[] ConvertWAVtoShortArray(string path)
         {
-            if (filepath  == null)
+            if (path  == null)
                 return new short[0];
             try {
-                var waveReader = new NAudio.Wave.WaveFileReader(filepath);
+                var waveReader = new NAudio.Wave.WaveFileReader(path);
                 int bytesNumber = (int)waveReader.Length;
                 var byteBuffer = new byte[bytesNumber];
                 waveReader.Read(byteBuffer, 0, byteBuffer.Length);
@@ -369,10 +425,17 @@ namespace AcousticDataAdapter
                       
         }
 
-
-        string CompilePath(string filepath, DateTime startingDate, DateTime endingDate, string appendix)
+        /// <summary>
+        /// Creates a path to the file where the result of conversion or log entries will be written.
+        /// </summary>
+        ///<param name = "path" > A string with the  path to the folder entered by the user.</param>
+        ///<param name = "startingDate" > A Date with the starting timeof conversion.</param>
+        ///<param name = "endingDate" > A Date with the ending timeof conversion.</param>
+        ///<param name = "appendix" > A name and an extention of the file itself.</param>
+        ///<returns> A combined string with the resukting path.</returns>
+        string CompilePath(string path, DateTime startingDate, DateTime endingDate, string appendix)
         {
-            var newFilePath = new System.Text.StringBuilder(filepath.Substring(0, filepath.LastIndexOf('\\') + 1));
+            var newFilePath = new System.Text.StringBuilder(path.Substring(0, path.LastIndexOf('\\') + 1));
             string fileName = String.Format("{0}-{1}", startingDate.ToString("s"), endingDate.ToString("s"));
             fileName = fileName.Replace(':', '.');
             newFilePath.Append(fileName);
@@ -382,18 +445,34 @@ namespace AcousticDataAdapter
             return newFilePath.ToString();
         }
 
+        /// <summary>
+        /// Writes all numbers from a short array  intoa file stream.
+        /// </summary>
+        ///<param name = "numbers" > A short array.</param>
+        ///<param name = "ostream" > A stream whcih writestoa file.</param>
         void WriteNumbersToFile(short[][] numbers, StreamWriter ostream)
         {
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             WriteNumbersToFile(numbers, 0, length, ostream);
         }
-
+        /// <summary>
+        /// Writes all numbers from a short array  intoa file stream.
+        /// </summary>
+        ///<param name = "numbers" > A short array.</param>
+        ///<param name = "startIndex" > A starting index from which the elements of the array will be written.</param>
+        ///<param name = "ostream" > A stream whcih writestoa file.</param>
         void WriteNumbersToFile(short[][] numbers, int startIndex, StreamWriter ostream)
         {
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             WriteNumbersToFile(numbers, startIndex, length, ostream);
         }
-
+        /// <summary>
+        /// Writes all numbers from a short array  intoa file stream.
+        /// </summary>
+        ///<param name = "numbers" > A short array.</param>
+        ///<param name = "startIndex" > A starting index from which the elements of the array will be written.</param>
+        ///<param name = "endIndex" > An ending index until which the elements of the array will be written.</param>
+        ///<param name = "ostream" > A stream whcih writestoa file.</param>
         void WriteNumbersToFile(short[][] numbers, int startIndex, int endIndex, StreamWriter ostream)
         {
             for (int i = startIndex; i < endIndex; i++)
@@ -410,7 +489,10 @@ namespace AcousticDataAdapter
                 ostream.WriteLine(sb);
             }
         }
-
+        /// <summary>
+        /// Compresses a folder into a ZIPfile.
+        /// </summary>
+        ///<param name = "path" > A path to a folder.</param>
         void CompressFile(string pathToFile)
         {
             string tempFolder = pathToFile.Substring(0, pathToFile.LastIndexOf('\\'));
@@ -419,9 +501,14 @@ namespace AcousticDataAdapter
             Directory.Delete(tempFolder, true);
         }
 
-        bool CheckIfZipExists(string logPath)
+        /// <summary>
+        /// Checks if a ZIP file in some path already exists.
+        /// </summary>
+        ///<param name = "path" > A path to a folder.</param>
+        ///<returns> A boolean with the result of the check</returns>
+        bool CheckIfZipExists(string path)
         {
-            string pathToZip = logPath.Substring(0, logPath.LastIndexOf('\\'))+ ".zip";
+            string pathToZip = path.Substring(0, path.LastIndexOf('\\'))+ ".zip";
 
             return File.Exists(pathToZip);
         }
