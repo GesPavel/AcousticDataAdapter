@@ -64,6 +64,7 @@
             this.endYearTextbox = new System.Windows.Forms.TextBox();
             this.compressCheckbox = new System.Windows.Forms.CheckBox();
             this.integrityCheckbox = new System.Windows.Forms.CheckBox();
+            this.conversionProgressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // FileChooserButton
@@ -402,11 +403,20 @@
             this.integrityCheckbox.UseVisualStyleBackColor = true;
             this.integrityCheckbox.CheckedChanged += new System.EventHandler(this.IntegrityCheckbox_CheckedChanged);
             // 
+            // conversionProgressBar
+            // 
+            this.conversionProgressBar.Location = new System.Drawing.Point(264, 298);
+            this.conversionProgressBar.Name = "conversionProgressBar";
+            this.conversionProgressBar.Size = new System.Drawing.Size(217, 23);
+            this.conversionProgressBar.TabIndex = 44;
+            this.conversionProgressBar.Visible = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.conversionProgressBar);
             this.Controls.Add(this.integrityCheckbox);
             this.Controls.Add(this.compressCheckbox);
             this.Controls.Add(this.endSecondTextbox);
@@ -486,6 +496,7 @@
         private System.Windows.Forms.TextBox endYearTextbox;
         private System.Windows.Forms.CheckBox compressCheckbox;
         private System.Windows.Forms.CheckBox integrityCheckbox;
+        private System.Windows.Forms.ProgressBar conversionProgressBar;
     }
 }
 

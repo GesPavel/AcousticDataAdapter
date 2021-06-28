@@ -47,24 +47,35 @@ namespace AcousticDataAdapter
 
         }
 
-        private void FileChooserButton_Click(object sender, EventArgs e)
+        private async void FileChooserButton_Click(object sender, EventArgs e)
         {
             if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
-                try
-                {
+                
+                    
                     var filePath = folderBrowserDialog.SelectedPath;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK && saveFileDialog.FileName != "")
                     {
                         var filePath2 = saveFileDialog.FileName;
-                        mainLogic.OpenFolderAndSaveConversionResult(filePath, filePath2);
+
+
+                        conversionProgressBar.Visible = true;
+                        conversionProgressBar.Style = ProgressBarStyle.Marquee;
+                        FileChooserButton.Enabled = false;
+                        await Task.Run(() => {
+                            try
+                            {
+                                mainLogic.OpenFolderAndSaveConversionResult(filePath, filePath2);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(ex.Message.ToString(), "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        });
+                        FileChooserButton.Enabled = true;
+                        conversionProgressBar.Visible = false;
                     }
-                }
-                catch(Exception ex)
-                {
-                    MessageBox.Show(ex.Message.ToString(), "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
             }
         }
 

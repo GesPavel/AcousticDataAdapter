@@ -105,10 +105,11 @@ namespace AcousticDataAdapter
 
             if (checkForIntegrity)
             {
-
                 if (ParseDateTimeFromName(folders[0]) > startingDate)
                     throw new ArgumentOutOfRangeException("Theres is no entries for entered starting date!");
                 string logPath = CompilePath(pathToDest, startingDate, endingDate, "log.txt");
+                if (compressTextFile  && CheckIfZipExists(logPath))
+                    throw new Exception("Zip with the same name already exists");
                 StreamWriter logStream = new StreamWriter(logPath);
                 string prevFolder = "";
                 DateTime prevEndingDate = new DateTime();
@@ -416,6 +417,13 @@ namespace AcousticDataAdapter
             string zipPath = tempFolder + ".zip";
             ZipFile.CreateFromDirectory(tempFolder, zipPath);
             Directory.Delete(tempFolder, true);
+        }
+
+        bool CheckIfZipExists(string logPath)
+        {
+            string pathToZip = logPath.Substring(0, logPath.LastIndexOf('\\'))+ ".zip";
+
+            return File.Exists(pathToZip);
         }
     }
 }
