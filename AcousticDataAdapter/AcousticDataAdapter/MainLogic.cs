@@ -77,10 +77,10 @@ namespace AcousticDataAdapter
             public int samples;
         }
 
-        
+
         public void OpenFolderAndSaveConversionResult(string pathToSource, string pathToDest)
         {
-            
+
             DateTime startingDate;
             DateTime endingDate;
             try
@@ -90,128 +90,158 @@ namespace AcousticDataAdapter
             }
             catch (FormatException e)
             {
-               throw new FormatException("Incorrect date format!");
-                //TODO Implement window error
+                throw new FormatException("Incorrect date format!");
             }
             catch (ArgumentNullException e)
             {
                 throw new ArgumentNullException("Date cannot be empty!");
-                //TODO Implement window error
             }
             if (endingDate < startingDate)
                 throw new FormatException("Ending date cannot be earlier than starting date");
 
             string[] folders = GetListOfFolders(pathToSource);
             Array.Sort(folders);
-            string destinationPath = "";
-            string logPath = pathToDest;
+            bool atLeastOneFolderIsFound = false;
 
             if (checkForIntegrity)
             {
+
+                if (ParseDateTimeFromName(folders[0]) > startingDate)
+                    throw new ArgumentOutOfRangeException("Theres is no entries for entered starting date!");
+                string logPath = CompilePath(pathToDest, startingDate, endingDate, "log.txt");
+                StreamWriter logStream = new StreamWriter(logPath);
                 string prevFolder = "";
                 DateTime prevEndingDate = new DateTime();
                 int numOfMissingFolders = 0;
-                StreamWriter logStream = new StreamWriter(logPath);
+                try
+                {
+                    for (int i = 0; i < folders.Length; i++)
+                    {
+                        DateTime dt = ParseDateTimeFromName(folders[i]);
+                        if (startingDate <= dt && dt < endingDate)
+                        {
+                            if (prevFolder.Length == 0)
+                            {
+                                prevFolder = folders[i];
+                                ChannelFiles prevFiles = GetFilesFromFolder(prevFolder);
+                                prevEndingDate = ExtractFileProperties(prevFiles.propertiesFile).end;
+                                atLeastOneFolderIsFound = true;
+                                continue;
+                            }
+                            ChannelFiles files = GetFilesFromFolder(folders[i]);
+                            Properties prop = ExtractFileProperties(files.propertiesFile);
+                            if (prevEndingDate != prop.begin)
+                            {
+                                numOfMissingFolders++;
+                                logStream.WriteLine(String.Format("There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
+                            }
+                            prevEndingDate = prop.end;
+
+                        }
+                    }
+                    if (prevEndingDate < endingDate)
+                    {
+                        throw new ArgumentOutOfRangeException("There is not enough folders to fill until ending date");
+                    }
+                    if (!atLeastOneFolderIsFound)
+                        throw new ArgumentOutOfRangeException("There is no WAV files recorded in the interval in the directory.");
+                    if (numOfMissingFolders > 0)
+                    {
+                        throw new MissingDataException(String.Format("There is/are {0} missing folders. See log for details. Abandoning conversion.", numOfMissingFolders));
+                    }
+                }
+                catch (MissingDataException e) {
+                    throw new MissingDataException(e.Message);
+                }
+                catch (Exception e)
+                {
+                    if (logStream != null)
+                    {
+                        logStream.Flush();
+                        logStream.Close();
+                    }
+                    if (Directory.Exists(logPath.Substring(0, logPath.LastIndexOf('\\'))))
+                        Directory.Delete(logPath.Substring(0, logPath.LastIndexOf('\\')), true);
+                    throw new Exception(e.Message);
+                }
+                finally
+                {
+                    if (logStream != null)
+                    {
+                        logStream.Flush();
+                        logStream.Close();
+                    }
+                }
+            }
+
+            string destinationPath = CompilePath(pathToDest, startingDate, endingDate, "result.txt");
+            StreamWriter ostream = new StreamWriter(destinationPath);
+            string previousFolder = "";
+            
+            int foldersFound = 0;
+            DateTime previousEndingDate = new DateTime();
+            try
+            {
                 foreach (string folder in folders)
                 {
                     DateTime dt = ParseDateTimeFromName(folder);
-                    if (startingDate <= dt && dt < endingDate.AddMinutes(15))
+                    if (startingDate <= dt)
                     {
-                        if (prevFolder.Length == 0)
+                        if (foldersFound == 0)
                         {
-                            prevFolder = folder;
-                            ChannelFiles prevFiles = GetFilesFromFolder(prevFolder);
-                            prevEndingDate = ExtractFileProperties(prevFiles.propertiesFile).end;
-                            continue;
-                        }
-                        ChannelFiles files = GetFilesFromFolder(folder);
-                        Properties prop = ExtractFileProperties(files.propertiesFile);
-                        if (prevEndingDate != prop.begin)
-                        {
-                            numOfMissingFolders++;
-                            logStream.WriteLine(String.Format("There is a missing folder between {0} and {1}", prevEndingDate, prop.begin));
-                        }
-                        prevEndingDate = prop.end;    
+                            ChannelFiles prevFiles = GetFilesFromFolder(previousFolder);
+                            Properties prevProp = ExtractFileProperties(prevFiles.propertiesFile);
 
-                    }
-                }
-                logStream.Close();
-                if (numOfMissingFolders > 0)
-                {
-                    throw new MissingDataException(String.Format("There is/are {0} missing folders. See log for details. Abandoning conversion.", numOfMissingFolders));
-                }
-            }
-
-            int foldersFound = 0;
-            StreamWriter ostream = null;
-            string previousFolder = "";
-            DateTime previousEndingDate = new DateTime();
-
-            foreach (string folder in folders)
-            {
-                DateTime dt = ParseDateTimeFromName(folder);
-                if (startingDate <= dt)
-                {
-                    if (previousFolder.Length == 0)
-                        throw new MissingDataException("Theres is no entries for entered starting date!");
-                    else if (foldersFound == 0)
-                    {
-                        ChannelFiles prevFiles = GetFilesFromFolder(previousFolder);
-                        Properties prevProp = ExtractFileProperties(prevFiles.propertiesFile);
-                        Properties globalProp = prevProp;
-                        globalProp.begin = startingDate;
-                        globalProp.end = endingDate;
-                        destinationPath = CompileDestinationPath(pathToDest, globalProp);
-                        ostream = new StreamWriter(destinationPath);
-
-                        int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000  *  prevProp.frequency);
-                        short[][] prevNumbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
+                            int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000 * prevProp.frequency);
+                            short[][] prevNumbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
                                                     ConvertChannel1 ? ConvertWAVtoShortArray(prevFiles.channel1File) : new short[0],
                                                     ConvertChannel2 ? ConvertWAVtoShortArray(prevFiles.channel2File) : new short[0]
                                                 };
-                        WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
+                            WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
-                       foldersFound++;
-                       previousEndingDate = prevProp.end;
-                    }
+                            foldersFound++;
+                            previousEndingDate = prevProp.end;
+                        }
 
-                    ChannelFiles files = GetFilesFromFolder(folder);
-                    Properties prop = ExtractFileProperties(files.propertiesFile);
-                    short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
+                        ChannelFiles files = GetFilesFromFolder(folder);
+                        Properties prop = ExtractFileProperties(files.propertiesFile);
+                        short[][] numbers = {   ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
                                             ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
                                             ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
                                         };
-                    if (prop.end <= endingDate) {
-                        WriteNumbersToFile(numbers, ostream);
-                        foldersFound++;
-                    }
+                        if (prop.end <= endingDate)
+                        {
+                            WriteNumbersToFile(numbers, ostream);
+                            foldersFound++;
+                        }
 
-                    else if (prop.begin < endingDate)
-                    {
-                        int ticksDifference = (int)((endingDate - prop.begin).TotalMilliseconds / 1000 * prop.frequency);
-                        WriteNumbersToFile(numbers, 0, ticksDifference, ostream);
-                        foldersFound++;
+                        else if (prop.begin < endingDate)
+                        {
+                            int ticksDifference = (int)((endingDate - prop.begin).TotalMilliseconds / 1000 * prop.frequency);
+                            WriteNumbersToFile(numbers, 0, ticksDifference, ostream);
+                            foldersFound++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        previousEndingDate = prop.end;
                     }
-                    else
-                    {
-                        break;
-                    }
-                    previousEndingDate = prop.end;
+                    previousFolder = folder;
+
                 }
-                previousFolder = folder;
-                
             }
-            if (previousEndingDate < endingDate)
+            catch (Exception e) { throw new Exception(e.Message); }
+            finally
             {
-                throw new MissingDataException("There is not enough folders to fill until ending date");
+                if(ostream != null)
+                {
+                    ostream.Flush();
+                    ostream.Close();
+                }
             }
-            if (foldersFound == 0)
-                throw new MissingDataException("There is no WAV files recorded in the interval in the directory.");
-
-            ostream.Close();
             if (compressTextFile)
-                CompressFile(destinationPath);         
-            Console.WriteLine("Done!");
+                CompressFile(destinationPath);   
         }
 
 
@@ -246,12 +276,10 @@ namespace AcousticDataAdapter
             catch (ArgumentOutOfRangeException e)
             {
                 throw new ArgumentOutOfRangeException("Incorrect folder is chosen!");
-                //TODO Implement window error
             }
             catch (FormatException e)
             {
                 throw new FormatException("Incorrect folder format!");
-                //TODO Implement window error
             }
         }
 
@@ -341,14 +369,15 @@ namespace AcousticDataAdapter
         }
 
 
-        string CompileDestinationPath(string filepath, Properties prop)
+        string CompilePath(string filepath, DateTime startingDate, DateTime endingDate, string appendix)
         {
             var newFilePath = new System.Text.StringBuilder(filepath.Substring(0, filepath.LastIndexOf('\\') + 1));
-            string fileName = String.Format("{0}-{1};{2}Hz", prop.begin.ToString("s"), prop.end.ToString("s"), prop.frequency);
+            string fileName = String.Format("{0}-{1}", startingDate.ToString("s"), endingDate.ToString("s"));
             fileName = fileName.Replace(':', '.');
             newFilePath.Append(fileName);
             Directory.CreateDirectory(newFilePath.ToString());
-            newFilePath.Append("\\data.txt");
+            newFilePath.Append("\\");
+            newFilePath.Append(appendix);  
             return newFilePath.ToString();
         }
 
@@ -371,10 +400,10 @@ namespace AcousticDataAdapter
                 var sb = new System.Text.StringBuilder();
                 if (i < numbers[0].Length)
                     sb.Append(numbers[0][i]);
-                sb.Append(";");
+                sb.Append("\t");
                 if (i < numbers[1].Length)
                     sb.Append(numbers[1][i]);
-                sb.Append(";");
+                sb.Append("\t");
                 if (i < numbers[2].Length)
                     sb.Append(numbers[2][i]);
                 ostream.WriteLine(sb);

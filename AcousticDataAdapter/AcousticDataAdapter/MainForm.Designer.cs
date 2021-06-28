@@ -68,7 +68,7 @@
             // 
             // FileChooserButton
             // 
-            this.FileChooserButton.Location = new System.Drawing.Point(229, 343);
+            this.FileChooserButton.Location = new System.Drawing.Point(323, 340);
             this.FileChooserButton.Name = "FileChooserButton";
             this.FileChooserButton.Size = new System.Drawing.Size(100, 23);
             this.FileChooserButton.TabIndex = 1;
