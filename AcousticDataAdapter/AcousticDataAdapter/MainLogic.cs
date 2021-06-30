@@ -214,10 +214,10 @@ namespace AcousticDataAdapter
 
                             int ticksDifference = (int)((prevProp.end - startingDate).TotalMilliseconds / 1000 * prevProp.frequency); //Calculate the amount of elements thatneeds to be written
 
-                            short[][] prevNumbers = {
-                                                    ConvertChannel0 ? ConvertWAVtoShortArray(prevFiles.channel0File) : new short[0],
-                                                    ConvertChannel1 ? ConvertWAVtoShortArray(prevFiles.channel1File) : new short[0],
-                                                    ConvertChannel2 ? ConvertWAVtoShortArray(prevFiles.channel2File) : new short[0]
+                            float[][] prevNumbers = {
+                                                    ConvertChannel0 ? ConvertWAVtoFloatArray(prevFiles.channel0File) : new float[0],
+                                                    ConvertChannel1 ? ConvertWAVtoFloatArray(prevFiles.channel1File) : new float[0],
+                                                    ConvertChannel2 ? ConvertWAVtoFloatArray(prevFiles.channel2File) : new float[0]
                                                     };
                             WriteNumbersToFile(prevNumbers, prevNumbers[0].Length - ticksDifference, ostream);
 
@@ -227,10 +227,10 @@ namespace AcousticDataAdapter
                         //Get all info about current folder.
                         ChannelFiles files = GetFilesFromFolder(folder);
                         Properties prop = ExtractFileProperties(files.propertiesFile);
-                        short[][] numbers = {
-                                            ConvertChannel0 ? ConvertWAVtoShortArray(files.channel0File) : new short[0],
-                                            ConvertChannel1 ? ConvertWAVtoShortArray(files.channel1File) : new short[0],
-                                            ConvertChannel2 ? ConvertWAVtoShortArray(files.channel2File) : new short[0]
+                        float[][] numbers = {
+                                            ConvertChannel0 ? ConvertWAVtoFloatArray(files.channel0File) : new float[0],
+                                            ConvertChannel1 ? ConvertWAVtoFloatArray(files.channel1File) : new float[0],
+                                            ConvertChannel2 ? ConvertWAVtoFloatArray(files.channel2File) : new float[0]
                                             };
                         if (prop.end <= endingDate)
                         {
@@ -398,23 +398,28 @@ namespace AcousticDataAdapter
         }
 
         /// <summary>
-        /// Uses NAudio library to read a WAAV file and convert it to a short array.
+        /// Uses NAudio library to read a WAV file and convert it to a float array.
         /// </summary>
         ///<param name = "path" > A path to the WAV file.</param>
         ///<returns> A short array with data extracted from the file.</returns>
-        short[] ConvertWAVtoShortArray(string path)
+        float[] ConvertWAVtoFloatArray(string path)
         {
             if (path  == null)
-                return new short[0];
+                return new float[0];
             try {
                 var waveReader = new NAudio.Wave.WaveFileReader(path);
                 int bytesNumber = (int)waveReader.Length;
                 var byteBuffer = new byte[bytesNumber];
                 waveReader.Read(byteBuffer, 0, byteBuffer.Length);
                 int shortNumber = bytesNumber / 2 + bytesNumber % 2;
-                var waveBuffer = new short[shortNumber];
+                var waveBuffer = new float[shortNumber];
                 for (int i = 0, j = 0; i < bytesNumber; i += 2, j++)
-                    waveBuffer[j] = BitConverter.ToInt16(byteBuffer, i);
+                {
+                    short value = BitConverter.ToInt16(byteBuffer, i);
+                    waveBuffer[j] =  value < 0 ? -(float)(value) / Int16.MinValue
+                                               : (float)(value) / Int16.MaxValue;
+
+                }
                 waveReader.Close();
                 return waveBuffer;               
             }
@@ -424,6 +429,8 @@ namespace AcousticDataAdapter
             }
                       
         }
+
+
 
         /// <summary>
         /// Creates a path to the file where the result of conversion or log entries will be written.
@@ -450,7 +457,7 @@ namespace AcousticDataAdapter
         /// </summary>
         ///<param name = "numbers" > A short array.</param>
         ///<param name = "ostream" > A stream whcih writestoa file.</param>
-        void WriteNumbersToFile(short[][] numbers, StreamWriter ostream)
+        void WriteNumbersToFile(float[][] numbers, StreamWriter ostream)
         {
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             WriteNumbersToFile(numbers, 0, length, ostream);
@@ -461,7 +468,7 @@ namespace AcousticDataAdapter
         ///<param name = "numbers" > A short array.</param>
         ///<param name = "startIndex" > A starting index from which the elements of the array will be written.</param>
         ///<param name = "ostream" > A stream whcih writestoa file.</param>
-        void WriteNumbersToFile(short[][] numbers, int startIndex, StreamWriter ostream)
+        void WriteNumbersToFile(float[][] numbers, int startIndex, StreamWriter ostream)
         {
             int length = Math.Max(numbers[0].Length, Math.Max(numbers[1].Length, numbers[2].Length));
             WriteNumbersToFile(numbers, startIndex, length, ostream);
@@ -473,7 +480,7 @@ namespace AcousticDataAdapter
         ///<param name = "startIndex" > A starting index from which the elements of the array will be written.</param>
         ///<param name = "endIndex" > An ending index until which the elements of the array will be written.</param>
         ///<param name = "ostream" > A stream whcih writestoa file.</param>
-        void WriteNumbersToFile(short[][] numbers, int startIndex, int endIndex, StreamWriter ostream)
+        void WriteNumbersToFile(float[][] numbers, int startIndex, int endIndex, StreamWriter ostream)
         {
             for (int i = startIndex; i < endIndex; i++)
             {
